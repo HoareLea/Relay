@@ -9,10 +9,14 @@ namespace Relay.Utilities
     {
         public static void SetToAutomatic(string filePath)
         {
-           string text = File.ReadAllText(filePath);
-           text = text.Replace(@"""RunType"": ""Manual"",", @"""RunType"": ""Automatic"",");
+		if(filePath != null)
+			{
+				string text = File.ReadAllText(filePath);
+				text = text.Replace(@"""RunType"": ""Manual"",", @"""RunType"": ""Automatic"",");
 
-           File.WriteAllText(filePath,text);
+				File.WriteAllText(filePath, text);
+			}	
+
         }
 
         public static void InitializeDynamoRevit(ExternalCommandData commandData)

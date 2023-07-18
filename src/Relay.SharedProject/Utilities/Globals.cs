@@ -15,7 +15,8 @@ namespace Relay.Utilities
         public static Assembly ExecutingAssembly = Assembly.GetExecutingAssembly();
         public static string[] EmbeddedLibraries = ExecutingAssembly.GetManifestResourceNames().Where(x => x.EndsWith(".dll")).ToArray();
         public static string[] PotentialTabDirectories { get; set; }
-        public static string RibbonTabName = "Relay";
+		public static string Discipline { get; set; }
+		public static string RibbonTabName = "Hoare Lea";
         public static string RelayGraphs = Path.Combine(Globals.ExecutingPath, RibbonTabName);
 
         public static string CurrentGraphToRun { get; set; } = "";

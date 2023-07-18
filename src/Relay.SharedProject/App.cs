@@ -1,13 +1,20 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.UI;
+using Autodesk.Revit.UI.Events;
 using Autodesk.Windows;
+using Dynamo.Utilities;
 using ProtoCore.AST.ImperativeAST;
 using Relay.Utilities;
+using UIFramework;
+using ComboBox = Autodesk.Revit.UI.ComboBox;
+using RibbonItem = Autodesk.Revit.UI.RibbonItem;
 
 namespace Relay
 {
@@ -27,11 +34,13 @@ namespace Relay
             }
             else
             {
-                Globals.RibbonTabName = "Relay";
+                Globals.RibbonTabName = "Hoare Lea";
             }
 
-            // subscribe to ribbon click events
-            Autodesk.Windows.ComponentManager.UIElementActivated += ComponentManagerOnUIElementActivated;
+			Globals.Discipline = "General";
+
+			// subscribe to ribbon click events
+			Autodesk.Windows.ComponentManager.UIElementActivated += ComponentManagerOnUIElementActivated;
             // Attach custom event handler
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
             CreateRibbon(a);
@@ -74,31 +83,69 @@ namespace Relay
 
 
             //add our setup panel and button
-            var setupRibbonPanel = a.CreateRibbonPanel(Globals.RibbonTabName, "Setup");
+            var setupRibbonPanel = a.CreateRibbonPanel(Globals.RibbonTabName, "Setup Discipline");
 
-            //if the about exists in the relay graphs location, use it, if not use the resource
-            string localAboutImage = Path.Combine(Globals.RelayGraphs, "About_16.png");
-            BitmapImage aboutImage = aboutImage = File.Exists(localAboutImage) ? new BitmapImage(new Uri(localAboutImage)) : ImageUtils.LoadImage(Globals.ExecutingAssembly, "About_16.png");
+			// Create Combobox
+			string localMechImage = Path.Combine(Globals.RelayGraphs, "mech_16.png");
+			string localElecImage = Path.Combine(Globals.RelayGraphs, "elec_16.png");
+			string localPHImage = Path.Combine(Globals.RelayGraphs, "ph_16.png");
+			string localFireImage = Path.Combine(Globals.RelayGraphs, "fire_16.png");
+			string localGeneralImage = Path.Combine(Globals.RelayGraphs, "gen_16.png");
 
-            PushButtonData aboutButtonData = new PushButtonData("AboutRelay", "About\nRelay",
-                Path.Combine(Globals.ExecutingPath, "Relay.dll"), "Relay.About")
-            {
-                Image = aboutImage
-            };
+			ComboBoxData comboBoxData = new ComboBoxData("Select Discipline");
+			comboBoxData.ToolTip = "Select your discipline from the dropdown";
+			comboBoxData.Name = "Select Discipline";
 
-            //if the sync exists in the relay graphs location, use it, if not use the resource
-            string localSyncImage = Path.Combine(Globals.RelayGraphs, "Sync_16.png");
-            BitmapImage syncImage = aboutImage = File.Exists(localSyncImage) ? new BitmapImage(new Uri(localSyncImage)) : ImageUtils.LoadImage(Globals.ExecutingAssembly, "Sync_16.png");
+			IList<ComboBoxMemberData> comboBoxMemberDataList = new List<ComboBoxMemberData>();
 
-            PushButtonData syncButtonData = new PushButtonData("SyncGraphs", "Sync\nGraphs",
+			ComboBoxMemberData mechComboBoxMemberData = new ComboBoxMemberData("Mechanical", "Mechanical");
+			mechComboBoxMemberData.ToolTip = "Mechanical Scripts";
+			mechComboBoxMemberData.ToolTipImage = ImageUtils.LoadImage(Globals.ExecutingAssembly, localMechImage);
+			mechComboBoxMemberData.Image = new BitmapImage(new Uri(localMechImage));
+
+			ComboBoxMemberData elecComboBoxMemberData = new ComboBoxMemberData("Electrical", "Electrical");
+			elecComboBoxMemberData.ToolTip = "Electrical Scripts";
+			elecComboBoxMemberData.ToolTipImage = ImageUtils.LoadImage(Globals.ExecutingAssembly, localElecImage);
+			elecComboBoxMemberData.Image = new BitmapImage(new Uri(localElecImage));
+
+			ComboBoxMemberData PHComboBoxMemberData = new ComboBoxMemberData("Public Health", "Public Health");
+			PHComboBoxMemberData.ToolTip = "Public Health Scripts";
+			PHComboBoxMemberData.ToolTipImage = ImageUtils.LoadImage(Globals.ExecutingAssembly, localPHImage);
+			PHComboBoxMemberData.Image = new BitmapImage(new Uri(localPHImage));
+
+			ComboBoxMemberData fireComboBoxMemberData = new ComboBoxMemberData("Fire", "Fire");
+			fireComboBoxMemberData.ToolTip = "Fire Scripts";
+			fireComboBoxMemberData.ToolTipImage = ImageUtils.LoadImage(Globals.ExecutingAssembly, localFireImage);
+			fireComboBoxMemberData.Image = new BitmapImage(new Uri(localFireImage));
+
+			ComboBoxMemberData genComboBoxMemberData = new ComboBoxMemberData("General", "General");
+			genComboBoxMemberData.ToolTip = "General and model manager Scripts";
+			genComboBoxMemberData.ToolTipImage = ImageUtils.LoadImage(Globals.ExecutingAssembly, localGeneralImage);
+			genComboBoxMemberData.Image = new BitmapImage(new Uri(localGeneralImage));
+
+			comboBoxMemberDataList.Add(genComboBoxMemberData);
+			comboBoxMemberDataList.Add(mechComboBoxMemberData);
+			comboBoxMemberDataList.Add(elecComboBoxMemberData);
+			comboBoxMemberDataList.Add(PHComboBoxMemberData);
+			comboBoxMemberDataList.Add(fireComboBoxMemberData);
+
+			//if the sync exists in the relay graphs location, use it, if not use the resource
+			string localSyncImage = Path.Combine(Globals.RelayGraphs, "Sync_16.png");
+            BitmapImage syncImage = File.Exists(localSyncImage) ? new BitmapImage(new Uri(localSyncImage)) : ImageUtils.LoadImage(Globals.ExecutingAssembly, "Sync_16.png");
+
+            PushButtonData syncButtonData = new PushButtonData("SyncGraphs", "Re-Sync Dynamo\nGraphs",
                 Path.Combine(Globals.ExecutingPath, "Relay.dll"), "Relay.RefreshGraphs")
             {
                 Image = syncImage,
                 ToolTip = "This will sync graphs from the default graph directory. Hold down left shift key to force large images"
             };
 
-            setupRibbonPanel.AddStackedItems(aboutButtonData, syncButtonData);
-        }
+			IList<RibbonItem> ribbonITems =  setupRibbonPanel.AddStackedItems(comboBoxData, syncButtonData);
+			
+			ComboBox comboBox = ribbonITems[0] as Autodesk.Revit.UI.ComboBox;
+			comboBox.AddItems(comboBoxMemberDataList);
+			comboBox.CurrentChanged += new EventHandler<Autodesk.Revit.UI.Events.ComboBoxCurrentChangedEventArgs>(changeItem);
+		}
         private Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
         {
             // Get assembly name
@@ -134,5 +181,48 @@ namespace Relay
                 // suppress the error if it happens
             }
         }
-    }
+
+		private void changeItem( object sender, ComboBoxCurrentChangedEventArgs args )
+		{
+			try
+			{
+				Globals.Discipline = args.NewValue.Name;
+				Autodesk.Windows.RibbonControl ribbon = Autodesk.Windows.ComponentManager.Ribbon;
+				foreach (Autodesk.Windows.RibbonTab tab in ribbon.Tabs)
+				{
+					if (tab.Title == "Hoare Lea")
+					{
+						foreach (Autodesk.Windows.RibbonPanel panel in tab.Panels)
+						{
+							if (panel.Source.Id.Contains(args.OldValue.Name))
+							{
+								panel.IsVisible = false;
+							}
+							else if(panel.Source.Id.Contains(args.NewValue.Name))
+							{
+								panel.IsVisible = true;
+							}
+							else if(panel.Source.Id.Contains("Setup"))
+							{
+								//RibbonItemCollection collctn=panel.Source.Items;
+
+								//foreach (Autodesk.Windows.RibbonItem ri in collctn)
+								//{
+
+								//	ri.Width = 20;
+								//}
+							}
+							//RibbonUtils.SyncGraphs(args.Application, Globals.Discipline);
+						}
+					}
+				}
+
+			}
+			catch (Exception)
+			{
+				// suppress the error if it happens
+			}
+		}
+
+	}
 }

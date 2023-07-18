@@ -12,6 +12,8 @@ using System.Text.Json.Serialization;
 using System.Windows.Input;
 using Relay.Classes;
 using System.Reflection;
+using Autodesk.Windows;
+using RibbonItem = Autodesk.Revit.UI.RibbonItem;
 
 namespace Relay.Utilities
 {
@@ -213,30 +215,31 @@ namespace Relay.Utilities
                 {
                     //the upper folder name (panel name)
                     DirectoryInfo dInfo = new DirectoryInfo(directory);
+					if (dInfo.Name == Globals.Discipline)
+					{
+						Autodesk.Revit.UI.RibbonPanel panelToUse;
 
-                    Autodesk.Revit.UI.RibbonPanel panelToUse;
+						//try to create the panel, if it already exists, just use it
+						try
+						{
+							panelToUse = uiapp.CreateRibbonPanel(potentialTab, dInfo.Name);
+						}
+						catch (Exception)
+						{
+							panelToUse = uiapp.GetRibbonPanels(potentialTab).First(p => p.Name.Equals(dInfo.Name));
+						}
 
-                    //try to create the panel, if it already exists, just use it
-                    try
-                    {
-                        panelToUse = uiapp.CreateRibbonPanel(potentialTab, dInfo.Name);
-                    }
-                    catch (Exception)
-                    {
-                        panelToUse = uiapp.GetRibbonPanels(potentialTab).First(p => p.Name.Equals(dInfo.Name));
-                    }
+						//find the files that do not have a button yet
+						var toCreate = Directory.GetFiles(directory, "*.dyn")
+						.Where(f => RibbonUtils.GetButton(potentialTab, dInfo.Name, $"relay{new FileInfo(f).Name.Replace(" ", "")}") == null).ToArray();
 
-                    //find the files that do not have a button yet
-                    var toCreate = Directory.GetFiles(directory, "*.dyn")
-                        .Where(f => RibbonUtils.GetButton(potentialTab, dInfo.Name, $"relay{new FileInfo(f).Name.Replace(" ", "")}") == null).ToArray();
+						//if the user is holding down the left shift key, then force the large icons
+						bool forceLargeIcons = Keyboard.IsKeyDown(Key.LeftShift);
 
-                    //if the user is holding down the left shift key, then force the large icons
-                    bool forceLargeIcons = Keyboard.IsKeyDown(Key.LeftShift);
-
-                    RibbonUtils.AddItems(panelToUse, toCreate, forceLargeIcons);
+						RibbonUtils.AddItems(panelToUse, toCreate, true);
+					}
                 }
             }
         }
-
-    }
+	}
 }

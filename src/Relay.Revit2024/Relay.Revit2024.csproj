@@ -177,6 +177,7 @@
       <HintPath>..\packages\Prism.4.1.0.0\lib\NET40\System.Windows.Interactivity.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="System.Xaml" />
     <Reference Include="UIFramework, Version=24.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\Revit_All_Main_Versions_API_x64.2024.0.0\lib\net48\UIFramework.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
