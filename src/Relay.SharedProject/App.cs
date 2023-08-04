@@ -121,7 +121,6 @@ namespace Relay
 			comboBoxMemberDataList.Add(mechComboBoxMemberData);
 			comboBoxMemberDataList.Add(elecComboBoxMemberData);
 			comboBoxMemberDataList.Add(PHComboBoxMemberData);
-			comboBoxMemberDataList.Add(fireComboBoxMemberData);
 
 			//if the sync exists in the relay graphs location, use it, if not use the resource
 			string localSyncImage = Path.Combine(Globals.RelayGraphs, "Sync_16.png");
