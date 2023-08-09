@@ -89,7 +89,6 @@ namespace Relay
 			string localMechImage = Path.Combine(Globals.RelayGraphs, "mech_16.png");
 			string localElecImage = Path.Combine(Globals.RelayGraphs, "elec_16.png");
 			string localPHImage = Path.Combine(Globals.RelayGraphs, "ph_16.png");
-			string localFireImage = Path.Combine(Globals.RelayGraphs, "fire_16.png");
 			string localGeneralImage = Path.Combine(Globals.RelayGraphs, "gen_16.png");
 
 			ComboBoxData comboBoxData = new ComboBoxData("Select Discipline");
@@ -113,11 +112,6 @@ namespace Relay
 			PHComboBoxMemberData.ToolTipImage = ImageUtils.LoadImage(Globals.ExecutingAssembly, localPHImage);
 			PHComboBoxMemberData.Image = new BitmapImage(new Uri(localPHImage));
 
-			ComboBoxMemberData fireComboBoxMemberData = new ComboBoxMemberData("Fire", "Fire");
-			fireComboBoxMemberData.ToolTip = "Fire Scripts";
-			fireComboBoxMemberData.ToolTipImage = ImageUtils.LoadImage(Globals.ExecutingAssembly, localFireImage);
-			fireComboBoxMemberData.Image = new BitmapImage(new Uri(localFireImage));
-
 			ComboBoxMemberData genComboBoxMemberData = new ComboBoxMemberData("General", "General");
 			genComboBoxMemberData.ToolTip = "General and model manager Scripts";
 			genComboBoxMemberData.ToolTipImage = ImageUtils.LoadImage(Globals.ExecutingAssembly, localGeneralImage);
@@ -127,7 +121,6 @@ namespace Relay
 			comboBoxMemberDataList.Add(mechComboBoxMemberData);
 			comboBoxMemberDataList.Add(elecComboBoxMemberData);
 			comboBoxMemberDataList.Add(PHComboBoxMemberData);
-			comboBoxMemberDataList.Add(fireComboBoxMemberData);
 
 			//if the sync exists in the relay graphs location, use it, if not use the resource
 			string localSyncImage = Path.Combine(Globals.RelayGraphs, "Sync_16.png");
