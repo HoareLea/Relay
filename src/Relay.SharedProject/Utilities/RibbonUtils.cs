@@ -54,9 +54,9 @@ namespace Relay.Utilities
 						graphInfo = s;
 					}
 				}
-				string tooltip = graphInfo.tooltip; //GetDescription(fInfo);
+				string tooltip = GetDescription(fInfo);
 
-				string buttonName = $"relay{fInfo.Name.Replace(" ", "")}";
+				string buttonName = $"relay{graphInfo.dynamoName}";
                 PushButtonData newButtonData = new PushButtonData(buttonName,
                     graphInfo.dynamoName,
                     Path.Combine(Globals.ExecutingPath, "Relay.dll"), "Relay.Run")

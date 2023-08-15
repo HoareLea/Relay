@@ -18,6 +18,7 @@ namespace Relay.Utilities
         {
             return fileName.Replace(".dyn", "").Replace(' ','\n').Truncate(20);
         }
+
         public static string GetStringBetweenCharacters(this string input, char charFrom, char charTo)
         {
             int posFrom = input.IndexOf(charFrom);
