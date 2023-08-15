@@ -25,17 +25,17 @@ namespace Relay
             // parse the location for the potential tab name
             Globals.PotentialTabDirectories = Directory.GetDirectories(Globals.ExecutingPath);
             
-            if (Globals.PotentialTabDirectories.Any())
-            {
-                var potentialTabNames =
-                    Globals.PotentialTabDirectories.Select(d => new DirectoryInfo(d).Name).ToArray();
-                // Use the first folder for this first ribbon
-                Globals.RibbonTabName = potentialTabNames.First();
-            }
-            else
-            {
+            //if (Globals.PotentialTabDirectories.Any())
+            //{
+            //    var potentialTabNames =
+            //        Globals.PotentialTabDirectories.Select(d => new DirectoryInfo(d).Name).ToArray();
+            //    // Use the first folder for this first ribbon
+            //    Globals.RibbonTabName = potentialTabNames.First();
+            //}
+            //else
+            //{
                 Globals.RibbonTabName = "Hoare Lea";
-            }
+            //}
 
 			Globals.Discipline = "General";
 
@@ -91,6 +91,11 @@ namespace Relay
 			string localPHImage = Path.Combine(Globals.RelayGraphs, "ph_16.png");
 			string localGeneralImage = Path.Combine(Globals.RelayGraphs, "gen_16.png");
 
+			BitmapImage mechImage = new BitmapImage( new Uri(localMechImage));
+			BitmapImage elecImage = new BitmapImage( new Uri(localElecImage));
+			BitmapImage phImage = new BitmapImage( new Uri(localPHImage ));
+			BitmapImage generalImage = new BitmapImage( new Uri(localGeneralImage));
+
 			ComboBoxData comboBoxData = new ComboBoxData("Select Discipline");
 			comboBoxData.ToolTip = "Select your discipline from the dropdown";
 			comboBoxData.Name = "Select Discipline";
@@ -121,6 +126,7 @@ namespace Relay
 			comboBoxMemberDataList.Add(mechComboBoxMemberData);
 			comboBoxMemberDataList.Add(elecComboBoxMemberData);
 			comboBoxMemberDataList.Add(PHComboBoxMemberData);
+
 
 			//if the sync exists in the relay graphs location, use it, if not use the resource
 			string localSyncImage = Path.Combine(Globals.RelayGraphs, "Sync_16.png");
@@ -187,25 +193,29 @@ namespace Relay
 					{
 						foreach (Autodesk.Windows.RibbonPanel panel in tab.Panels)
 						{
-							if (panel.Source.Id.Contains(args.OldValue.Name))
-							{
-								panel.IsVisible = false;
-							}
-							else if(panel.Source.Id.Contains(args.NewValue.Name))
+							string oldDiscipline = args.OldValue.Name;
+							string newDiscipline = args.NewValue.Name;
+							string[] newPaneldirectories = Directory.GetDirectories(Path.Combine(Globals.ExecutingPath,"Hoare Lea", newDiscipline),"*", SearchOption.AllDirectories);
+							string[] allPaneldirectories = Directory.GetDirectories(Path.Combine(Globals.ExecutingPath,"Hoare Lea"),"*", SearchOption.AllDirectories);
+							if (newPaneldirectories.DefaultIfEmpty("empty").FirstOrDefault(e => e.Contains(panel.Source.Id) == true) != "empty")
 							{
 								panel.IsVisible = true;
 							}
-							else if(panel.Source.Id.Contains("Setup"))
+							else if(allPaneldirectories.Contains(panel.Source.Id))
 							{
-								//RibbonItemCollection collctn=panel.Source.Items;
-
-								//foreach (Autodesk.Windows.RibbonItem ri in collctn)
-								//{
-
-								//	ri.Width = 20;
-								//}
+								panel.IsVisible = false;
 							}
-							//RibbonUtils.SyncGraphs(args.Application, Globals.Discipline);
+							if (panel.Source.Id.Contains("Setup Discipline"))
+							{
+								RibbonItemCollection collctn=panel.Source.Items;
+
+								foreach (Autodesk.Windows.RibbonItem ri in collctn)
+								{
+
+									ri.Width = 20;
+								}
+							}
+							RibbonUtils.SyncGraphs(args.Application);
 						}
 					}
 				}
