@@ -76,15 +76,22 @@ namespace Relay.Utilities
                     : ImageUtils.LoadImage(assembly, "Dynamo_16.png");
 
                 TrySetContextualHelp(newButtonData, fInfo);
-
-                pushButtonDatas.Add(newButtonData);
+				if (pushButtonDatas.Contains(newButtonData) == false)
+				{
+					pushButtonDatas.Add(newButtonData);
+				}
+				
             }
 
             if (true) //forceLargeIcon
 			{
                 foreach (var pushButton in pushButtonDatas)
                 {
-                    panelToUse.AddItem(pushButton);
+					var items = panelToUse.GetItems();
+					if (!items.Any(e => e.Name == pushButton.Name))
+					{
+						panelToUse.AddItem(pushButton);
+					}
                 }
                 return;
             }
@@ -248,14 +255,14 @@ namespace Relay.Utilities
 							{
 								panelToUse = uiapp.GetRibbonPanels("Hoare Lea").First(p => p.Name.Equals(dInfo.Name));
 							}
-
+							
 							//find the files that do not have a button yet
 							var toCreate = Directory.GetFiles(directory, "*.dyn")
 								.Where(f => RibbonUtils.GetButton("Hoare Lea", dInfo.Name, $"relay{new FileInfo(f).Name.Replace(" ", "")}") == null).ToArray();
 
 							//if the user is holding down the left shift key, then force the large icons
 							bool forceLargeIcons = Keyboard.IsKeyDown(Key.LeftShift);
-
+							panelToUse.Visible = true;
 							RibbonUtils.AddItems(panelToUse, toCreate, true); // forceLargeIcons overridden
 						}
 						else if(dInfo.Parent.Name != "Hoare Lea" && dInfo.Parent.Name != Globals.Discipline)
