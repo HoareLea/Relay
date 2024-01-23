@@ -83,7 +83,7 @@ namespace Relay
 
 
             //add our setup panel and button
-            var setupRibbonPanel = a.CreateRibbonPanel(Globals.RibbonTabName, "Setup Discipline");
+            var setupRibbonPanel = a.CreateRibbonPanel(Globals.RibbonTabName, "Relay");
 
 			// Create Combobox
 			string localMechImage = Path.Combine(Globals.RelayGraphs, "mech_16.png");
@@ -205,7 +205,7 @@ namespace Relay
 							{
 								panel.IsVisible = false;
 							}
-							if (panel.Source.Id.Contains("Setup Discipline"))
+							if (panel.Source.Id.Contains("Relay"))
 							{
 								RibbonItemCollection collctn=panel.Source.Items;
 
