@@ -132,7 +132,7 @@ namespace Relay
 			string localSyncImage = Path.Combine(Globals.RelayGraphs, "Sync_16.png");
             BitmapImage syncImage = File.Exists(localSyncImage) ? new BitmapImage(new Uri(localSyncImage)) : ImageUtils.LoadImage(Globals.ExecutingAssembly, "Sync_16.png");
 
-            PushButtonData syncButtonData = new PushButtonData("SyncGraphs", "Re-Sync Dynamo\nGraphs",
+            PushButtonData syncButtonData = new PushButtonData("SyncGraphs", "Refresh",
                 Path.Combine(Globals.ExecutingPath, "Relay.dll"), "Relay.RefreshGraphs")
             {
                 Image = syncImage,
