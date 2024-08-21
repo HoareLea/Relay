@@ -12,16 +12,12 @@ using System.Text.Json.Serialization;
 using System.Windows.Input;
 using Relay.Classes;
 using System.Reflection;
-using Autodesk.Windows;
-using RibbonItem = Autodesk.Revit.UI.RibbonItem;
-using Newtonsoft.Json;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Relay.Utilities
 {
     class RibbonUtils
     {
-		public static List<List<T>> SplitList<T>(List<T> me, int size = 50)
+        public static List<List<T>> SplitList<T>(List<T> me, int size = 50)
         {
             var list = new List<List<T>>();
             for (int i = 0; i < me.Count; i += size)
@@ -34,31 +30,16 @@ namespace Relay.Utilities
             var assembly = Assembly.GetExecutingAssembly();
             var totalFiles = dynPaths.Length;
 
-			string fileName = Globals.GraphDetailPath;
-
-			var sr = new StreamReader(fileName);
-			var json = sr.ReadToEnd();
-
-			Globals.GraphFileInfo = JsonConvert.DeserializeObject<IList<Globals.DynamoGraphFileInfo>>(json);
-
             List<PushButtonData> pushButtonDatas = new List<PushButtonData>();
             foreach (var file in dynPaths)
             {
-				Globals.DynamoGraphFileInfo graphInfo = new Globals.DynamoGraphFileInfo();
-
                 FileInfo fInfo = new FileInfo(file);
-				foreach(var s in Globals.GraphFileInfo)
-				{
-					if(s.fileName == fInfo.Name)
-					{
-						graphInfo = s;
-					}
-				}
-				string tooltip = GetDescription(fInfo);
 
-				string buttonName = $"relay{graphInfo.dynamoName}";
+                string tooltip = GetDescription(fInfo);
+
+                string buttonName = $"relay{fInfo.Name.Replace(" ", "")}";
                 PushButtonData newButtonData = new PushButtonData(buttonName,
-                    graphInfo.dynamoName,
+                    fInfo.Name.GenerateButtonText(),
                     Path.Combine(Globals.ExecutingPath, "Relay.dll"), "Relay.Run")
                 {
                     ToolTip = tooltip,
@@ -76,40 +57,33 @@ namespace Relay.Utilities
                     : ImageUtils.LoadImage(assembly, "Dynamo_16.png");
 
                 TrySetContextualHelp(newButtonData, fInfo);
-				if (pushButtonDatas.Contains(newButtonData) == false)
-				{
-					pushButtonDatas.Add(newButtonData);
-				}
-				
+
+                pushButtonDatas.Add(newButtonData);
             }
 
-            if (true) //forceLargeIcon
-			{
+            if (forceLargeIcon)
+            {
                 foreach (var pushButton in pushButtonDatas)
                 {
-					var items = panelToUse.GetItems();
-					if (!items.Any(e => e.Name == pushButton.Name))
-					{
-						panelToUse.AddItem(pushButton);
-					}
+                    panelToUse.AddItem(pushButton);
                 }
                 return;
             }
 
-            //var splitButtons = SplitList(pushButtonDatas, 2);
+            var splitButtons = SplitList(pushButtonDatas, 2);
 
-            //foreach (var buttonGroup in splitButtons)
-            //{
-            //    switch (buttonGroup.Count)
-            //    {
-            //        case 2:
-            //            panelToUse.AddStackedItems(buttonGroup[0], buttonGroup[1]);
-            //            break;
-            //        case 1:
-            //            panelToUse.AddItem(buttonGroup[0]);
-            //            break;
-            //    }
-            //}
+            foreach (var buttonGroup in splitButtons)
+            {
+                switch (buttonGroup.Count)
+                {
+                    case 2:
+                        panelToUse.AddStackedItems(buttonGroup[0], buttonGroup[1]);
+                        break;
+                    case 1:
+                        panelToUse.AddItem(buttonGroup[0]);
+                        break;
+                }
+            }
         }
 
         private static string GetDescription(FileInfo fInfo)
@@ -221,65 +195,48 @@ namespace Relay.Utilities
             // iterate through all sub folders
             foreach (var potentialTabDirectory in Globals.PotentialTabDirectories)
             {
-				// current tab name
-				string potentialTab = new DirectoryInfo(potentialTabDirectory).Name;
-				//try
-				//{
-				//	// Create a custom ribbon tab
-				//	uiapp.CreateRibbonTab(potentialTab);
-				//}
-				//catch
-				//{
-				//	// Might Already Exist
-				//}
+                // current tab name
+                string potentialTab = new DirectoryInfo(potentialTabDirectory).Name;
 
-				//create the panels for the sub directories
-				foreach (var directory in Directory.GetDirectories(potentialTabDirectory,"*", SearchOption.AllDirectories))
-				{
-					//the upper folder name (panel name)
-					DirectoryInfo dInfo = new DirectoryInfo(directory);
-					
-					if (!dInfo.Name.Contains("General") || !dInfo.Name.Contains("Mechanical") || !dInfo.Name.Contains("Electrical") || !dInfo.Name.Contains("Public Health"))
-					{
-						
-						if (dInfo.Parent.Name == Globals.Discipline)
-						{
-							Autodesk.Revit.UI.RibbonPanel panelToUse;
+                try
+                {
+                    // Create a custom ribbon tab
+                    uiapp.CreateRibbonTab(potentialTab);
+                }
+                catch
+                {
+                    // Might Already Exist
+                }
 
-							//try to create the panel, if it already exists, just use it
-							try
-							{
-								panelToUse = uiapp.CreateRibbonPanel("Hoare Lea", dInfo.Name);
-							}
-							catch (Exception)
-							{
-								panelToUse = uiapp.GetRibbonPanels("Hoare Lea").First(p => p.Name.Equals(dInfo.Name));
-							}
-							
-							//find the files that do not have a button yet
-							var toCreate = Directory.GetFiles(directory, "*.dyn")
-								.Where(f => RibbonUtils.GetButton("Hoare Lea", dInfo.Name, $"relay{new FileInfo(f).Name.Replace(" ", "")}") == null).ToArray();
+                //create the panels for the sub directories
+                foreach (var directory in Directory.GetDirectories(potentialTabDirectory))
+                {
+                    //the upper folder name (panel name)
+                    DirectoryInfo dInfo = new DirectoryInfo(directory);
 
-							//if the user is holding down the left shift key, then force the large icons
-							bool forceLargeIcons = Keyboard.IsKeyDown(Key.LeftShift);
-							panelToUse.Visible = true;
-							RibbonUtils.AddItems(panelToUse, toCreate, true); // forceLargeIcons overridden
-						}
-						else if(dInfo.Parent.Name != "Hoare Lea" && dInfo.Parent.Name != Globals.Discipline)
-						{
-							try
-							{
-								var panelToUse = uiapp.GetRibbonPanels("Hoare Lea").First(p => p.Name.Equals(dInfo.Name));
-								panelToUse.Visible = false;
-							}
-							catch
-							{
-								continue;
-							}
-						}
-					}
-				}
+                    Autodesk.Revit.UI.RibbonPanel panelToUse;
+
+                    //try to create the panel, if it already exists, just use it
+                    try
+                    {
+                        panelToUse = uiapp.CreateRibbonPanel(potentialTab, dInfo.Name);
+                    }
+                    catch (Exception)
+                    {
+                        panelToUse = uiapp.GetRibbonPanels(potentialTab).First(p => p.Name.Equals(dInfo.Name));
+                    }
+
+                    //find the files that do not have a button yet
+                    var toCreate = Directory.GetFiles(directory, "*.dyn")
+                        .Where(f => RibbonUtils.GetButton(potentialTab, dInfo.Name, $"relay{new FileInfo(f).Name.Replace(" ", "")}") == null).ToArray();
+
+                    //if the user is holding down the left shift key, then force the large icons
+                    bool forceLargeIcons = Keyboard.IsKeyDown(Key.LeftShift);
+
+                    RibbonUtils.AddItems(panelToUse, toCreate, forceLargeIcons);
+                }
             }
         }
-	}
+
+    }
 }
